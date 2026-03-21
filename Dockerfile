@@ -11,26 +11,31 @@ RUN npm run build
 FROM python:3.11-slim
 WORKDIR /app
 
-# Install backend deps
+# Install Node.js first (for Next.js server)
+RUN apt-get update && apt-get install -y curl bash && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Python backend dependencies
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend
 COPY backend/ ./backend/
 
-# Copy built frontend
+# Copy built frontend from builder stage
 COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
 COPY --from=frontend-builder /app/frontend/public ./frontend/public
 COPY --from=frontend-builder /app/frontend/package*.json ./frontend/
-COPY --from=frontend-builder /app/frontend/node_modules ./frontend/node_modules
+COPY --from=frontend-builder /app/frontend/next.config.ts ./frontend/
 
-# Install Node for Next.js server
-RUN apt-get update && apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install production dependencies for Next.js
+WORKDIR /app/frontend
+RUN npm ci --only=production
 
-# Start script
+# Copy startup script
+WORKDIR /app
 COPY start.sh ./
 RUN chmod +x start.sh
 
