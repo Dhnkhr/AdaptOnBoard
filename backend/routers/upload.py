@@ -31,11 +31,6 @@ class AnalyzeRequest(BaseModel):
     experience_level: Optional[str] = "entry"
 
 
-class ManualSkillsRequest(BaseModel):
-    skills: list[str]
-    role_id: str
-
-
 class UrlUploadRequest(BaseModel):
     url: str
 
@@ -149,30 +144,3 @@ async def analyze_gap(request: AnalyzeRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error in analysis: {str(e)}")
-
-
-@router.post("/quick-analyze")
-async def quick_analyze(request: ManualSkillsRequest):
-    """
-    Quick analysis without resume upload — user provides skills manually.
-    Normalizes skills and generates pathway.
-    """
-    try:
-        gap = compute_skill_gap_custom_role(request.skills, request.role_id)
-        if "error" in gap:
-            raise HTTPException(status_code=404, detail=gap["error"])
-
-        pathway = generate_pathway(gap)
-
-        return {
-            "success": True,
-            "raw_skills": request.skills,
-            "skill_gap": gap,
-            "pathway": pathway,
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error in quick analysis: {str(e)}"
-        )
