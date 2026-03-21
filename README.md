@@ -1,6 +1,7 @@
 <div align="center">
   <h1>AI-Adaptive Onboarding Engine</h1>
-  <p><b>A Zero-Manual-Effort, AI-Driven Adaptive Learning Engine for Intelligent Upskilling</b></p>
+  <p><b>Hackathon Submission — AI-Adaptive Onboarding Engine Challenge</b></p>
+  <p><i>A Zero-Manual-Effort, LLM-Driven Adaptive Learning Engine for Intelligent, Role-Specific Upskilling</i></p>
 
   <p>
     <img src="https://img.shields.io/badge/Python-3.11-blue?logo=python" alt="Python" />
@@ -9,165 +10,324 @@
     <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19" />
     <img src="https://img.shields.io/badge/LLaMA-3.3%2070B-orange" alt="LLaMA 3.3" />
     <img src="https://img.shields.io/badge/Groq-Fast_Inference-f85149" alt="Groq API" />
+    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker" alt="Docker" />
   </p>
 </div>
 
 ---
 
-## Overview
+## 1. Problem Statement
 
-The **AI-Adaptive Onboarding Engine** is a cutting-edge platform designed to revolutionize technical and non-technical onboarding. Built for seamless zero-manual-effort curriculum generation, the engine parses user resumes against target job roles—across any domain—and dynamically generates a hyper-personalized, highly-optimized learning pathway.
+Corporate onboarding today is broken. Organizations rely on static, "one-size-fits-all" training curricula that ignore an individual's existing competencies. As a result:
 
-By leveraging state-of-the-art open-source LLMs (Llama 3.3 70B via the Groq engine) and bespoke **graph-based Topological Sorting**, the application guarantees optimal prerequisite mapping and avoids redundant training to dramatically reduce onboarding time.
+- **Experienced hires waste time** on basics they already know.
+- **Beginners are left overwhelmed** by modules beyond their current level.
+- **HR teams spend weeks** manually curating learning paths for each new role.
 
----
-
-## Core Features
-
-1. **Intelligent Resume Parsing & Gap Analysis**
-   - Automatically parses complex, unstructured resumes (PDFs) into normalized skill vectors using `pdfplumber` and the Llama 3.3 70B model.
-   - Calculates a detailed, granular gap analysis between existing employee expertise and target role requirements.
-
-2. **Infinity-Domain Custom Role Mapping**
-   - Eliminates hardcoded roles completely. Enter *any* job title—from "Quantum Computing Researcher" to "Social Science Teacher" or "Sustainability Consultant"—and the AI dynamically builds a tailored competency framework in real-time.
-
-3. **Adaptive Pathway & Graph Engine**
-   - **Directed Acyclic Graph (DAG) Construction:** Analyzes underlying skill hierarchy and dependencies to compute the optimal learning sequence.
-   - **Recursive Prerequisite Resolution:** Automatically identifies hidden foundational gaps (e.g., ensuring a candidate masters "JavaScript" before learning "React").
-   - **Kahn's Priority Sorting:** Uses a custom priority-weighted topological sort to sequence learning modules precisely from "Foundations" to "Expert."
-
-4. **Resilient AI Chatbot & Rate Limit Fallback Mechanisms**
-   - Integrated intelligent chatbot for onboarding assistance and live querying.
-   - **Enterprise-Grade Availability:** The application proactively manages Groq API constraints. It implements real-time fallback algorithms that dynamically switch from the primary model (`llama-3.3-70b-versatile`) to available high-speed models (like `llama-3.1-8b-instant` or `llama3-8b-8192`) when hitting rate limits. No downtime during high-load demos!
-
-5. **Radical Transparency & Reasoning Trace**
-   - Every skill gap and learning recommendation is accompanied by an AI reasoning trace—providing pure transparency on *why* a module was suggested and *how* the roadmap was structured.
-
-6. **Integrated Dashboard & Progress Tracking**
-   - Clean, modern interactive Next.js dashboard equipped with real-time UI states, modern framer animations, and graphical pathway progression reporting.
+**The Challenge:** Build an AI-driven, adaptive learning engine that:
+1. Parses a new hire's current capabilities from a **Resume (PDF)** or **GitHub Profile**.
+2. Accepts a **Target Job Role** (any role — technical or non-technical) and an optional **Job Description**.
+3. Dynamically identifies the precise **skill gap** between where the candidate is and where they need to be.
+4. Generates a **personalized, prerequisite-ordered learning pathway** to close that gap efficiently.
 
 ---
 
-## Technical Architecture
+## 2. Minimum Required Features 
 
-### Tech Stack
+The judging criteria require the following features — all are fully implemented:
 
-- **Frontend:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, Lucide React (Icons), Framer Motion.
-- **Backend:** Python 3.11+, FastAPI, Pydantic, Python-Multipart.
-- **AI/ML Layer:** Groq SDK, Llama-3.3-70b-Versatile (Primary), Llama-3.1-8b-Instant (Fallback).
-- **Core Algorithms:** Custom Python-based Priority-Weighted Topological Sorter.
-- **Infrastructure:** Containerization via Docker & Docker-Compose.
+| Requirement | Status | Implementation |
+|---|---|---|
+| **Intelligent Parsing** |  | LLM-powered extraction of skills & experience from Resume PDFs and GitHub profiles |
+| **Dynamic Mapping** | | Custom-role skill gap identification via Llama 3.3 70B on any job title |
+| **Functional Interface** |  | Full Next.js web app — upload Resume or GitHub URL, view Dashboard + Roadmap |
+| **Reasoning Trace** |  | Every skill gap recommendation includes an AI-generated explanation *why* |
 
-### Repository Structure
+---
+
+## 3. Core Features
+
+### 3.1 Multi-Source Input — Resume PDF & GitHub Profile
+- **Resume Upload:** Drag-and-drop PDF parsing via `pdfplumber`, followed by LLM-based structured extraction of skills, experience level, and candidate metadata.
+- **GitHub Profile URL:** Enter a public GitHub profile URL. The engine fetches up to 15 most-recently-pushed **original** (non-forked) repositories via the GitHub public API, extracts languages, topics, and descriptions, and builds a synthetic "portfolio resume" for skill extraction — no authentication required.
+
+### 3.2 Infinity-Domain Custom Role Mapping
+- Completely eliminates hardcoded role databases.
+- Enter **any** job title — `"Social Science Teacher"`, `"Quantum Computing Researcher"`, `"Sustainability Consultant"`, `"Senior Frontend Developer"` — and the LLM dynamically constructs a full competency framework in real time.
+- Optionally paste a **Job Description** (up to 500 characters) for precision extraction of implicit skills, experience requirements, and domain-specific knowledge from the actual JD text.
+
+### 3.3 Adaptive Pathway & Graph Engine
+- **Directed Acyclic Graph (DAG):** Analyzes skill hierarchy and dependencies to compute the optimal prerequisite-respecting learning sequence.
+- **Recursive Prerequisite Resolution:** Detects hidden foundational gaps — e.g., ensures a candidate learns "JavaScript fundamentals" before "React" before "Next.js".
+- **Kahn's Priority-Weighted Topological Sort:** Sequences all learning modules from Foundations → Intermediate → Advanced → Expert, respecting all inter-skill dependencies simultaneously.
+
+### 3.4 Reasoning Trace (Transparency)
+- Every skill gap recommendation is accompanied by an AI-generated *reasoning explanation*: why this skill is needed, how critical it is, and where it sits in the learning sequence.
+- Powered by the `llama-3.3-70b-versatile` model via Groq's ultra-fast inference API.
+
+### 3.5 Resilient AI Chatbot with Rate-Limit Fallback
+- Integrated onboarding assistant chatbot for real-time Q&A about the generated pathway.
+- **Enterprise-grade availability:** Proactively manages Groq API rate limits using an automatic fallback chain:
+  - Primary: `llama-3.3-70b-versatile`
+  - Fallback 1: `llama-3.1-8b-instant`
+  - Fallback 2: `llama3-8b-8192`
+- Zero downtime during high-load demos.
+
+### 3.6 Interactive Dashboard & Roadmap
+- Modern Next.js 15 frontend with real-time animated UI.
+- **Dashboard:** Visualizes matched skills, skill gap summary, experience level, and pathway overview.
+- **Roadmap View:** Step-by-step interactive learning pathway with priority ordering and reasoning annotations.
+
+---
+
+## 4. Technical Architecture
+
+### 4.1 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | Next.js 15 (App Router), React 19, TypeScript, Vanilla CSS |
+| **Backend** | Python 3.11+, FastAPI, Pydantic, Uvicorn |
+| **AI / LLM Layer** | Groq SDK, Llama-3.3-70b-versatile (Primary), Llama-3.1-8b-instant & llama3-8b-8192 (Fallback) |
+| **PDF Parsing** | pdfplumber |
+| **GitHub Integration** | GitHub Public REST API (no auth required) |
+| **Core Algorithm** | Custom Priority-Weighted Topological Sort (Kahn's Algorithm) on a DAG |
+| **Infrastructure** | Docker, Docker Compose |
+
+### 4.2 System Architecture & Data Flow
+
+```
+User Input
+(PDF Resume / GitHub URL / Custom Role / JD)
+          │
+          ▼
+┌─────────────────────┐
+│   Next.js Frontend  │  ← Upload, Role Entry, JD Paste
+│  (Port 3000)        │
+└────────┬────────────┘
+         │  REST API calls
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│                  FastAPI Backend (Port 8000)             │
+│                                                         │
+│  /api/upload-resume  →  PDF text extraction             │
+│                         → LLM resume parsing (Groq)     │
+│                         → Structured skill vector out   │
+│                                                         │
+│  /api/analyze-url    →  GitHub API scraping             │
+│                         → Portfolio text synthesis      │
+│                         → LLM portfolio skill parsing   │
+│                                                         │
+│  /api/analyze        →  Custom role skill gen (LLM)     │
+│                         → Skill gap computation         │
+│                         → DAG construction              │
+│                         → Topological sort (Kahn's)     │
+│                         → Reasoning trace generation    │
+└─────────────────────────────────────────────────────────┘
+         │
+         ▼
+ Personalized Learning Pathway
+ (Dashboard + Roadmap, stored in sessionStorage)
+```
+
+### 4.3 Repository Structure
 
 ```text
 IISc/
 ├── backend/
-│   ├── main.py                    # FastAPI entry context
+│   ├── main.py                    # FastAPI app entry point & CORS config
 │   ├── requirements.txt           # Python dependencies
 │   ├── routers/
-│   │   └── upload.py              # Resume processing endpoints
+│   │   └── upload.py              # All API endpoints (upload, analyze-url, analyze)
 │   ├── services/
-│   │   ├── resume_parser.py       # PDF parsing & dynamic LLM extraction
-│   │   ├── job_matcher.py         # Advanced skill-gap computation logic
-│   │   └── pathway_engine.py      # Adaptive dependency mapping (DAG)
+│   │   ├── resume_parser.py       # PDF parsing, LLM extraction, portfolio skill parsing
+│   │   ├── job_matcher.py         # Skill gap computation, custom role LLM generation
+│   │   ├── pathway_engine.py      # DAG construction & Kahn's topological sort
+│   │   ├── url_parser.py          # GitHub public API scraper & portfolio builder
+│   │   └── chat_agent.py          # AI chatbot with multi-model rate-limit fallback
 │   ├── data/
-│   │   └── skill_taxonomy.json    # Foundational role taxonomy fallback
-│   └── tests/                     # Integrations and Unit Testing
+│   │   └── skill_taxonomy.json    # Foundational skill taxonomy reference
+│   └── tests/                     # Unit & integration tests
 ├── frontend/
 │   ├── package.json               # Node.js dependencies
-│   └── app/
-│       ├── page.tsx               # Beautiful Landing UI
-│       ├── upload/page.tsx        # Drag-and-drop Resume Upload Interface
-│       ├── dashboard/page.tsx     # Comprehensive competency Dashboard
-│       └── roadmap/page.tsx       # Graph-rendered Interactive Roadmap
-├── Dockerfile                     # Unified Application Containerization
-├── docker-compose.yml             # Local Orchestration
-├── .env.example                   # Environment templates
-└── README.md                      # Documentation
+│   ├── app/
+│   │   ├── page.tsx               # Landing page
+│   │   ├── upload/page.tsx        # Resume upload + GitHub URL input + role/JD entry
+│   │   ├── dashboard/page.tsx     # Skill gap summary & pathway overview
+│   │   └── roadmap/page.tsx       # Detailed interactive learning roadmap
+│   └── components/
+│       ├── Chatbot.tsx            # Onboarding AI assistant
+│       └── ThemeToggle.tsx        # Light/dark theme toggle
+├── Dockerfile                     # Unified containerization
+├── docker-compose.yml             # Local orchestration (backend + frontend)
+├── .env.example                   # Environment variable template
+└── README.md                      # This file
 ```
 
 ---
 
-## Getting Started
-
-You can run this project locally on your machine either using direct commands or Docker.
+## 5. Setup & Running Locally
 
 ### Prerequisites
 
 - **Python 3.11+**
 - **Node.js 20+**
-- A free **Groq API Key** (Get yours at [console.groq.com](https://console.groq.com/keys))
+- A free **Groq API Key** → [console.groq.com/keys](https://console.groq.com/keys)
 
-### 1. Environment Configuration
-
-Clone the repository and set up your variables:
+### Step 1 — Clone & Configure Environment
 
 ```bash
-git clone <your-repo-url>
-cd IISc
+git clone https://github.com/Dhnkhr/AdaptOnBoard.git
+cd AdaptOnBoard
 
-# Create your .env file
-echo "GROQ_API_KEY=your_groq_api_key_here" > .env
-echo "GROQ_MODEL=llama-3.3-70b-versatile" >> .env
-echo "PORT=8000" >> .env
+# Copy the env template and add your Groq key
+cp .env.example .env
+# Edit .env and set: GROQ_API_KEY=your_key_here
 ```
 
-### 2. Standard Local Run (Multi-Terminal)
+**`.env` file contents:**
+```env
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+PORT=8000
+```
 
-#### Start the FastAPI Backend (Terminal 1)
+---
+
+### Option A — Standard Local Run (Recommended for Development)
+
+#### Terminal 1 — FastAPI Backend
+
 ```bash
-# Navigate to the project root
+# Create & activate virtual environment
 python -m venv .venv
-# On Windows use: .venv\Scripts\activate
-source .venv/bin/activate 
 
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r backend/requirements.txt
 
-# Run the FastAPI server
+# Start the backend server
 python -m uvicorn backend.main:app --reload --port 8000
 ```
-*The backend API will be available at [http://localhost:8000/docs](http://localhost:8000/docs).*
 
-#### Start the Next.js Frontend (Terminal 2)
+Backend API + Swagger docs available at: **http://localhost:8000/docs**
+
+#### Terminal 2 — Next.js Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-*The interactive dashboard will be running at [http://localhost:3000](http://localhost:3000).*
 
-### 3. Running with Docker Compose (Alternative)
+Frontend available at: **http://localhost:3000**
 
-For a one-command setup, you can let Docker handle the orchestration:
+---
+
+### Option B — Docker Compose (One-Command Setup)
 
 ```bash
+# Build and start both services
 docker-compose up --build
 ```
-This boots both the FastAPI backend and Next.js frontend seamlessly.
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| API Docs (Swagger) | http://localhost:8000/docs |
 
 ---
 
-## Submission Compliance & Highlights
+## 6. End-to-End User Journey
 
-This project successfully fulfills the **AI-Adaptive Onboarding Engine** criteria:
-1. **Unconstrained Adaptability**: Eliminates rule-based rigid templates in favor of pure LLM generative generation (supporting creative, operational, and deep technical disciplines seamlessly).
-2. **Robustness Architecture**: Zero hallucinations with deeply engineered prompt chains, strict JSON parsing requirements (via Pydantic), and high-availability API fallback patterns perfectly suited for rate limits mapping.
-3. **Advanced Personalization**: The Graph builder ensures a learner focuses solely on what they don’t know—accelerating competency by stripping out redundant corporate onboarding tasks.
-4. **Transparent Design**: Employs reasoning trace strategies to surface exactly *why* gaps exist and the exact pedagogical framework driving them.
+1. **Land** on the homepage → click **"Start Onboarding"**
+2. **Choose input mode:**
+   -  **Upload Resume** — drag & drop your PDF resume
+   -  **GitHub Profile** — paste your GitHub profile URL (e.g. `https://github.com/username`)
+3. **Enter Target Job Title** — any role, any domain
+4. *(Optional)* **Paste Job Description** — for precision skill extraction
+5. Click **"Analyze & Generate Pathway"**
+6. View your **Dashboard** — skill matches, skill gaps, experience level
+7. Navigate to **Roadmap** — your personalized, prerequisite-ordered learning pathway with AI reasoning
+8. Use the **Chatbot** — ask follow-up questions about your pathway at any time
 
 ---
 
-## Datasets & External References
+## 7. Datasets & External References
 
-- [Kaggle: Resume & Professional Profile Dataset](https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset/data)
-- [Kaggle: Job Descriptions Metadata](https://www.kaggle.com/datasets/kshitizregmi/jobs-and-job-description)
-- [O*NET Online Occupational Taxonomy](https://www.onetonline.org/)
-- [Groq AI & Inference API Docs](https://console.groq.com/docs/quickstart)
-- [Meta Llama Organization](https://www.llama.com/)
+As required by the hackathon, all datasets used are publicly available:
+
+| Dataset | Source | Usage |
+|---|---|---|
+| Resume & Professional Profile Dataset | [Kaggle — snehan/resume-dataset](https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset/data) | Benchmarking resume parsing accuracy |
+| Jobs and Job Descriptions | [Kaggle — kshitizregmi/jobs-and-job-description](https://www.kaggle.com/datasets/kshitizregmi/jobs-and-job-description) | Reference for role-skill mapping validation |
+| O*NET Occupational Information Network | [onetonline.org](https://www.onetonline.org/db_releases.html) | Industry-standard occupational taxonomy reference |
+
+**Models used (explicitly cited):**
+- `llama-3.3-70b-versatile` — Primary LLM for skill extraction, gap analysis, and reasoning (via Groq)
+- `llama-3.1-8b-instant` — Rate-limit fallback model
+- `llama3-8b-8192` — Secondary fallback model
+
+---
+
+## 8. Evaluation Criteria Compliance
+
+| Criterion | Weight | Our Implementation |
+|---|---|---|
+| **Technical Sophistication** | 20% | Custom DAG + Kahn's topological sort for prerequisite resolution; multi-stage LLM pipeline with strict Pydantic JSON validation; rate-limit fallback chain |
+| **Grounding & Reliability** | 15% | Zero hallucination design: Pydantic-enforced structured outputs, strict JSON parsing with error recovery, Groq inference with deterministic prompts |
+| **Reasoning Trace** | 10% | Every skill recommendation carries an AI-generated `reasoning` field explaining *why* it's needed and *where* in the learning sequence |
+| **Productivity** | 10% | Redundant training elimination via prerequisite graph — learners only see what they don't already know |
+| **User Experience** | 15% | Modern, animated Next.js UI; multi-input modes (PDF + GitHub); chatbot assistant; theme toggle; intuitive pipeline from upload to roadmap |
+| **Cross-Domain Scalability** | 10% | Completely hardcoding-free: supports any job title via pure LLM generation — from "Data Scientist" to "Social Science Teacher" |
+| **Communication & Documentation** | 20% | This README, GitHub public repository, inline code documentation, Swagger API docs auto-generated by FastAPI |
+
+---
+
+## 9. Presentation — 5-Slide Deck Outline
+
+> *(As required by the hackathon submission format)*
+
+**Slide 1 — Solution Overview**
+- Problem: Static onboarding wastes experienced hires' time, overwhelms beginners
+- Solution: AI engine that adapts to *every individual* using their actual skills
+- Value proposition: Reduce onboarding time, eliminate redundancy, maximize ROI
+
+**Slide 2 — Architecture & Workflow**
+- System diagram: Frontend → FastAPI → Groq LLM → DAG engine → Pathway output
+- Two input modes: Resume PDF + GitHub profile URL
+- Data flow: Input → Skill Extraction → Gap Analysis → Topological Sort → Roadmap
+
+**Slide 3 — Tech Stack & Models**
+- Frontend: Next.js 15, React 19, TypeScript
+- Backend: FastAPI, Python 3.11, pdfplumber, GitHub Public API
+- LLMs: Llama 3.3 70B (primary), Llama 3.1 8B & llama3-8b-8192 (fallbacks) via Groq
+- Algorithm: Priority-Weighted Topological Sort (Kahn's Algorithm) on a DAG
+
+**Slide 4 — Algorithms, Training & Datasets**
+- Skill gap computation logic & dependency graph construction
+- Datasets: Kaggle Resume Dataset, Kaggle Jobs Dataset, O*NET taxonomy
+- Internal metrics: skill match rate, gap coverage, pathway depth vs. experience level
+
+**Slide 5 — Datasets & Metrics**
+- Public datasets disclosed (see Section 7)
+- Evaluation: Technical sophistication + UX + cross-domain generalization
+- Originality: Fully custom "Adaptive Logic" — the DAG engine teaches only what the candidate needs
+
+---
+
+## 10. Originality Statement
+
+This project was built from scratch for this hackathon. The **"Adaptive Logic"** (DAG-based prerequisite resolver + priority-weighted topological sorter) is an original implementation. No pre-built recommendation engines, curriculum APIs, or external learning path services are used. The LLM is used purely as an inference engine with structured output contracts enforced entirely by our own Pydantic models and prompt engineering.
 
 ---
 
 <div align="center">
-  <p><i>MIT License — Built over a weekend for empowering candidates to bypass redundancy and accelerate their onboarding capabilities. </i></p>
+  <p><b>Repository:</b> <a href="https://github.com/Dhnkhr/AdaptOnBoard">github.com/Dhnkhr/AdaptOnBoard</a></p>
+  <p><i>MIT License — Built for the AI-Adaptive Onboarding Engine Hackathon Challenge</i></p>
 </div>
