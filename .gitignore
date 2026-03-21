@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment
+.env
+
+# Build directories
+build/
+dist/
+*.egg-info/
+.next/
+out/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

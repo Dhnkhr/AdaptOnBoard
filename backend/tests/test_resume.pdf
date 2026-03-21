@@ -1,0 +1,32 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1077 >>
+stream
+BT /F1 11 Tf 72 750 Td (John Smith) Tj T* (john.smith@email.com) Tj T* (+1 (555) 123-4567) Tj T* () Tj T* (SUMMARY) Tj T* (Software developer with 3 years of experience in Python, JavaScript, and cloud computing.) Tj T* () Tj T* (SKILLS) Tj T* (- Python, Django, Flask, FastAPI) Tj T* (- JavaScript, React, Node.js) Tj T* (- SQL, PostgreSQL, MongoDB) Tj T* (- Docker, Kubernetes) Tj T* (- Git, Linux, AWS) Tj T* (- Machine Learning, Data Analysis) Tj T* (- HTML, CSS, REST API Design) Tj T* () Tj T* (EXPERIENCE) Tj T* (Software Developer | TechCorp Inc. | 2022-Present) Tj T* (- Built REST APIs using FastAPI and Python) Tj T* (- Deployed microservices on AWS using Docker and Kubernetes) Tj T* (- Developed React frontend applications) Tj T* () Tj T* (Junior Developer | StartupXYZ | 2020-2022) Tj T* (- Wrote Python scripts for data analysis) Tj T* (- Managed PostgreSQL databases) Tj T* (- Used Git for version control) Tj T* () Tj T* (EDUCATION) Tj T* (B.S. Computer Science | State University | 2020) Tj T* () Tj T* (CERTIFICATIONS) Tj T* (- AWS Cloud Practitioner) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000266 00000 n 
+0000000400 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+482
+%%EOF
