@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🚀 AI-Adaptive Onboarding Engine</h1>
+  <h1>AI-Adaptive Onboarding Engine</h1>
   <p><b>A Zero-Manual-Effort, AI-Driven Adaptive Learning Engine for Intelligent Upskilling</b></p>
 
   <p>
@@ -14,7 +14,7 @@
 
 ---
 
-## 🌟 Overview
+## Overview
 
 The **AI-Adaptive Onboarding Engine** is a cutting-edge platform designed to revolutionize technical and non-technical onboarding. Built for seamless zero-manual-effort curriculum generation, the engine parses user resumes against target job roles—across any domain—and dynamically generates a hyper-personalized, highly-optimized learning pathway.
 
@@ -22,33 +22,33 @@ By leveraging state-of-the-art open-source LLMs (Llama 3.3 70B via the Groq engi
 
 ---
 
-## ✨ Core Features
+## Core Features
 
-1. **📄 Intelligent Resume Parsing & Gap Analysis**
+1. **Intelligent Resume Parsing & Gap Analysis**
    - Automatically parses complex, unstructured resumes (PDFs) into normalized skill vectors using `pdfplumber` and the Llama 3.3 70B model.
    - Calculates a detailed, granular gap analysis between existing employee expertise and target role requirements.
 
-2. **🌀 Infinity-Domain Custom Role Mapping**
+2. **Infinity-Domain Custom Role Mapping**
    - Eliminates hardcoded roles completely. Enter *any* job title—from "Quantum Computing Researcher" to "Social Science Teacher" or "Sustainability Consultant"—and the AI dynamically builds a tailored competency framework in real-time.
 
-3. **🗺️ Adaptive Pathway & Graph Engine**
+3. **Adaptive Pathway & Graph Engine**
    - **Directed Acyclic Graph (DAG) Construction:** Analyzes underlying skill hierarchy and dependencies to compute the optimal learning sequence.
    - **Recursive Prerequisite Resolution:** Automatically identifies hidden foundational gaps (e.g., ensuring a candidate masters "JavaScript" before learning "React").
    - **Kahn's Priority Sorting:** Uses a custom priority-weighted topological sort to sequence learning modules precisely from "Foundations" to "Expert."
 
-4. **🛡️ Resilient AI Chatbot & Rate Limit Fallback Mechanisms**
+4. **Resilient AI Chatbot & Rate Limit Fallback Mechanisms**
    - Integrated intelligent chatbot for onboarding assistance and live querying.
    - **Enterprise-Grade Availability:** The application proactively manages Groq API constraints. It implements real-time fallback algorithms that dynamically switch from the primary model (`llama-3.3-70b-versatile`) to available high-speed models (like `llama-3.1-8b-instant` or `llama3-8b-8192`) when hitting rate limits. No downtime during high-load demos!
 
-5. **🧠 Radical Transparency & Reasoning Trace**
+5. **Radical Transparency & Reasoning Trace**
    - Every skill gap and learning recommendation is accompanied by an AI reasoning trace—providing pure transparency on *why* a module was suggested and *how* the roadmap was structured.
 
-6. **📊 Integrated Dashboard & Progress Tracking**
+6. **Integrated Dashboard & Progress Tracking**
    - Clean, modern interactive Next.js dashboard equipped with real-time UI states, modern framer animations, and graphical pathway progression reporting.
 
 ---
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 ### Tech Stack
 
@@ -89,7 +89,7 @@ IISc/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 You can run this project locally on your machine either using direct commands or Docker.
 
@@ -148,7 +148,7 @@ This boots both the FastAPI backend and Next.js frontend seamlessly.
 
 ---
 
-## 🔒 Submission Compliance & Highlights
+## Submission Compliance & Highlights
 
 This project successfully fulfills the **AI-Adaptive Onboarding Engine** criteria:
 1. **Unconstrained Adaptability**: Eliminates rule-based rigid templates in favor of pure LLM generative generation (supporting creative, operational, and deep technical disciplines seamlessly).
@@ -158,7 +158,7 @@ This project successfully fulfills the **AI-Adaptive Onboarding Engine** criteri
 
 ---
 
-## 📚 Datasets & External References
+## Datasets & External References
 
 - [Kaggle: Resume & Professional Profile Dataset](https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset/data)
 - [Kaggle: Job Descriptions Metadata](https://www.kaggle.com/datasets/kshitizregmi/jobs-and-job-description)
@@ -169,5 +169,5 @@ This project successfully fulfills the **AI-Adaptive Onboarding Engine** criteri
 ---
 
 <div align="center">
-  <p><i>MIT License — Built over a weekend for empowering candidates to bypass redundancy and accelerate their onboarding capabilities. 💡</i></p>
+  <p><i>MIT License — Built over a weekend for empowering candidates to bypass redundancy and accelerate their onboarding capabilities. </i></p>
 </div>
