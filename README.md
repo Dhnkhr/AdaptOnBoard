@@ -38,10 +38,10 @@ The judging criteria require the following features — all are fully implemente
 
 | Requirement | Status | Implementation |
 |---|---|---|
-| **Intelligent Parsing** |  | LLM-powered extraction of skills & experience from Resume PDFs and GitHub profiles |
-| **Dynamic Mapping** | | Custom-role skill gap identification via Llama 3.3 70B on any job title |
-| **Functional Interface** |  | Full Next.js web app — upload Resume or GitHub URL, view Dashboard + Roadmap |
-| **Reasoning Trace** |  | Every skill gap recommendation includes an AI-generated explanation *why* |
+| **Intelligent Parsing** | Done | LLM-powered extraction of skills & experience from Resume PDFs and GitHub profiles |
+| **Dynamic Mapping** | Done | Custom-role skill gap identification via Llama 3.3 70B on any job title |
+| **Functional Interface** | Done | Full Next.js web app — upload Resume or GitHub URL, view Dashboard + Roadmap |
+| **Reasoning Trace** | Done | Every skill gap recommendation includes an AI-generated explanation *why* |
 
 ---
 
