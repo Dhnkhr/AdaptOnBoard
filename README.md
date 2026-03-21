@@ -243,6 +243,28 @@ docker-compose up --build
 
 ---
 
+### Option C — Production Docker Deployment
+
+For production/judge evaluation with optimized settings:
+
+```bash
+# Build production image
+docker build -t adaptonboard:prod .
+
+# Run with production compose file
+docker compose -f docker-compose.prod.yml up
+```
+
+**Production features:**
+- Resource limits (2 CPU, 4GB RAM)
+- Health checks with extended startup grace period
+- JSON logging with rotation (10MB per file, max 3 files)
+- Auto-restart on failure
+- Custom network isolation
+- Production-optimized API URLs
+
+---
+
 ## 6. End-to-End User Journey
 
 1. **Land** on the homepage → click **"Start Onboarding"**
@@ -321,7 +343,43 @@ As required by the hackathon, all datasets used are publicly available:
 
 ---
 
-## 10. Originality Statement
+## 10. Docker Deployment & Troubleshooting
+
+### Building & Running
+
+**Local Development:**
+```bash
+docker compose up --build
+```
+
+**Production Build:**
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+
+### Troubleshooting
+
+| Issue | Solution |
+|---|---|
+| **Port 3000/8000 already in use** | Change ports in `docker-compose.yml`: `"3001:3000"` |
+| **Health check failing** | Increase `start_period` to 60s; ensure `.env` has valid `GROQ_API_KEY` |
+| **Frontend can't reach backend** | Verify `NEXT_PUBLIC_API_URL=http://app:8000` in Dockerfile stage 1 |
+| **Docker daemon not running** | Start Docker Desktop or `systemctl start docker` (Linux) |
+| **Permission denied on start.sh** | Run `chmod +x start.sh` before building |
+| **Out of memory during build** | Increase Docker memory limit to 4GB+ in settings |
+
+### Docker Best Practices Applied
+
+✅ **Multi-stage builds** — Reduces final image size by excluding build tools  
+✅ **Alpine/slim base images** — Smaller attack surface, faster pulls  
+✅ **Health checks** — Monitors container readiness  
+✅ **Environment isolation** — Separate `.env` and `.env.prod` configs  
+✅ **Resource limits** — Prevents runaway containers in production  
+✅ **Logging configuration** — JSON logs with rotation  
+
+---
+
+## 11. Originality Statement
 
 This project was built from scratch for this hackathon. The **"Adaptive Logic"** (DAG-based prerequisite resolver + priority-weighted topological sorter) is an original implementation. No pre-built recommendation engines, curriculum APIs, or external learning path services are used. The LLM is used purely as an inference engine with structured output contracts enforced entirely by our own Pydantic models and prompt engineering.
 
