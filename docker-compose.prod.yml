@@ -1,26 +1,53 @@
 version: "3.8"
 
 services:
-  app:
+  frontend:
     build:
-      context: .
+      context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: https://api.yourdomain.com
-    image: adaptonboard:latest
-    container_name: adaptonboard-prod
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    image: dhnkhr/adaptonboard:frontend
+    container_name: adaptonboard-frontend-prod
     ports:
       - "3000:3000"
+    env_file:
+      - .env.prod
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - ENVIRONMENT=production
+    restart: always
+    networks:
+      - adaptonboard-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2G
+
+  backend:
+    build:
+      context: ./backend
+    image: dhnkhr/adaptonboard:backend
+    container_name: adaptonboard-backend-prod
+    ports:
       - "8000:8000"
     env_file:
       - .env.prod
     environment:
-      - NEXT_PUBLIC_API_URL=https://api.yourdomain.com
       - ENVIRONMENT=production
     restart: always
     networks:
       - adaptonboard-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -33,12 +60,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 4G
-        reservations:
           cpus: "1"
           memory: 2G
-
+          
 networks:
   adaptonboard-network:
     driver: bridge

@@ -1,21 +1,32 @@
 version: "3.8"
 
 services:
-  app:
+  frontend:
     build:
-      context: .
+      context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: http://app:8000
+        NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
       - "3000:3000"
-      - "8000:8000"
     env_file:
       - .env
     environment:
-      - NEXT_PUBLIC_API_URL=http://app:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -1,0 +1,15 @@
+FOR BACKEND
+
+docker pull --platform linux/amd64 dhnkhr/adaptonboard:backend
+docker run --platform linux/amd64 -d --name adaptonboard-backend -p 8000:8000 dhnkhr/adaptonboard:backend
+
+
+
+FOR FRONTEND
+docker pull --platform linux/amd64 dhnkhr/adaptonboard:frontend
+docker run --platform linux/amd64 -d --name adaptonboard-frontend -p 3000:3000 dhnkhr/adaptonboard:frontend
+
+
+FOR REMOVING CONTAINERS
+docker rm -f adaptonboard-backend
+docker rm -f adaptonboard-frontend

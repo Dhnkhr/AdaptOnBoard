@@ -1,0 +1,15 @@
+﻿docker : DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+At line:1 char:1
++ docker build ./frontend --progress=plain 2>&1 | Out-File -Encoding ut ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (DEPRECATED: The...future release.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+            BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0
+            environment-variable.
+
+unknown flag: --progress
+
+Usage:  docker build [OPTIONS] PATH | URL | -
+
+Run 'docker build --help' for more information
