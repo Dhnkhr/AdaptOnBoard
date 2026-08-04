@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 app = FastAPI(
     title="AI-Adaptive Onboarding Engine",
