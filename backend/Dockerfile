@@ -12,9 +12,8 @@ COPY . /app/backend
 # Add /app to the python path so the backend folder is importable
 ENV PYTHONPATH=/app
 
-# --- BAKE THE KEYS IN ---
-ENV GROQ_API_KEY="REMOVED_SECRET"
-ENV GROQ_MODEL="llama-3.3-70b-versatile"
+# Environment variables are injected at runtime via docker-compose env_file
+# Do NOT hardcode secrets here — use .env or .env.prod instead
 ENV PORT="8000"
 
 EXPOSE 8000
