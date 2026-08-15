@@ -9,7 +9,7 @@ from groq import Groq
 
 LLM_AVAILABLE = False
 LLM_CLIENT = None
-LLM_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 try:
     api_key = os.getenv("GROQ_API_KEY", "")
     if api_key and api_key != "your_groq_api_key_here":
@@ -23,8 +23,8 @@ def _create_chat_completion_with_fallback(**kwargs):
         return LLM_CLIENT.chat.completions.create(**kwargs)
     except Exception as e:
         if "rate limit" in str(e).lower() or "429" in str(e) or "rate_limit_exceeded" in str(e).lower():
-            print(f"[LLM] Rate limit hit for {kwargs.get('model')}. Falling back to llama-3.1-8b-instant.")
-            kwargs["model"] = "llama-3.1-8b-instant"
+            print(f"[LLM] Rate limit hit for {kwargs.get('model')}. Falling back to openai/gpt-oss-20b.")
+            kwargs["model"] = "openai/gpt-oss-20b"
             return LLM_CLIENT.chat.completions.create(**kwargs)
         raise e
 

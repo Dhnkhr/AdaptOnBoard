@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" alt="Next.js" />
     <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19" />
-    <img src="https://img.shields.io/badge/LLaMA-3.3%2070B-orange" alt="LLaMA 3.3" />
+    <img src="https://img.shields.io/badge/GPT--OSS-120B-orange" alt="GPT-OSS 120B" />
     <img src="https://img.shields.io/badge/Groq-Fast_Inference-f85149" alt="Groq API" />
     <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker" alt="Docker" />
   </p>
@@ -39,7 +39,7 @@ The judging criteria require the following features — all are fully implemente
 | Requirement | Status | Implementation |
 |---|---|---|
 | **Intelligent Parsing** | Done | LLM-powered extraction of skills & experience from Resume PDFs and GitHub profiles |
-| **Dynamic Mapping** | Done | Custom-role skill gap identification via Llama 3.3 70B on any job title |
+| **Dynamic Mapping** | Done | Custom-role skill gap identification via GPT-OSS 120B on any job title |
 | **Functional Interface** | Done | Full Next.js web app — upload Resume or GitHub URL, view Dashboard + Roadmap |
 | **Reasoning Trace** | Done | Every skill gap recommendation includes an AI-generated explanation *why* |
 
@@ -63,14 +63,13 @@ The judging criteria require the following features — all are fully implemente
 
 ### 3.4 Reasoning Trace (Transparency)
 - Every skill gap recommendation is accompanied by an AI-generated *reasoning explanation*: why this skill is needed, how critical it is, and where it sits in the learning sequence.
-- Powered by the `llama-3.3-70b-versatile` model via Groq's ultra-fast inference API.
+- Powered by the `openai/gpt-oss-120b` model via Groq's ultra-fast inference API.
 
 ### 3.5 Resilient AI Chatbot with Rate-Limit Fallback
 - Integrated onboarding assistant chatbot for real-time Q&A about the generated pathway.
 - **Enterprise-grade availability:** Proactively manages Groq API rate limits using an automatic fallback chain:
-  - Primary: `llama-3.3-70b-versatile`
-  - Fallback 1: `llama-3.1-8b-instant`
-  - Fallback 2: `llama3-8b-8192`
+  - Primary: `openai/gpt-oss-120b`
+  - Fallback: `openai/gpt-oss-20b`
 - Zero downtime during high-load demos.
 
 ### 3.6 Interactive Dashboard & Roadmap
@@ -88,7 +87,7 @@ The judging criteria require the following features — all are fully implemente
 |---|---|
 | **Frontend** | Next.js 15 (App Router), React 19, TypeScript, Vanilla CSS |
 | **Backend** | Python 3.11+, FastAPI, Pydantic, Uvicorn |
-| **AI / LLM Layer** | Groq SDK, Llama-3.3-70b-versatile (Primary), Llama-3.1-8b-instant & llama3-8b-8192 (Fallback) |
+| **AI / LLM Layer** | Groq SDK, openai/gpt-oss-120b (Primary), openai/gpt-oss-20b (Fallback) |
 | **PDF Parsing** | pdfplumber |
 | **GitHub Integration** | GitHub Public REST API (no auth required) |
 | **Core Algorithm** | Custom Priority-Weighted Topological Sort (Kahn's Algorithm) on a DAG |
@@ -188,7 +187,7 @@ cp .env.example .env
 **`.env` file contents:**
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
 PORT=8000
 ```
 
@@ -291,9 +290,8 @@ As required by the hackathon, all datasets used are publicly available:
 | O*NET Occupational Information Network | [onetonline.org](https://www.onetonline.org/db_releases.html) | Industry-standard occupational taxonomy reference |
 
 **Models used (explicitly cited):**
-- `llama-3.3-70b-versatile` — Primary LLM for skill extraction, gap analysis, and reasoning (via Groq)
-- `llama-3.1-8b-instant` — Rate-limit fallback model
-- `llama3-8b-8192` — Secondary fallback model
+- `openai/gpt-oss-120b` — Primary LLM for skill extraction, gap analysis, and reasoning (via Groq)
+- `openai/gpt-oss-20b` — Rate-limit fallback model
 
 ---
 
@@ -328,7 +326,7 @@ As required by the hackathon, all datasets used are publicly available:
 **Slide 3 — Tech Stack & Models**
 - Frontend: Next.js 15, React 19, TypeScript
 - Backend: FastAPI, Python 3.11, pdfplumber, GitHub Public API
-- LLMs: Llama 3.3 70B (primary), Llama 3.1 8B & llama3-8b-8192 (fallbacks) via Groq
+- LLMs: GPT-OSS 120B (primary), GPT-OSS 20B (fallback) via Groq
 - Algorithm: Priority-Weighted Topological Sort (Kahn's Algorithm) on a DAG
 
 **Slide 4 — Algorithms, Training & Datasets**

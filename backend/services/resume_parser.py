@@ -1,6 +1,6 @@
 """
 Resume Parser Service
-Extracts text from PDFs and uses Llama (via Groq) or keyword fallback to identify skills.
+Extracts text from PDFs and uses LLM (via Groq) or keyword fallback to identify skills.
 """
 import os
 import re
@@ -9,10 +9,10 @@ import pdfplumber
 from io import BytesIO
 from groq import Groq
 
-# Try to configure Llama via Groq, but gracefully handle missing key
+# Try to configure LLM via Groq, but gracefully handle missing key
 LLM_AVAILABLE = False
 LLM_CLIENT = None
-LLM_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 try:
     api_key = os.getenv("GROQ_API_KEY", "")
     if api_key and api_key != "your_groq_api_key_here":
@@ -326,7 +326,7 @@ def _extract_resume_data_keyword(text: str) -> dict:
     }
 
 
-# ========== Main functions (try Llama via Groq, fall back to keyword) ==========
+# ========== Main functions (try LLM via Groq, fall back to keyword) ==========
 
 
 def _extract_json_object(text: str) -> dict | None:
@@ -374,9 +374,9 @@ def _llama_json(prompt: str, max_tokens: int = 2048) -> dict | None:
     except Exception as e:
         if "rate limit" in str(e).lower() or "429" in str(e) or "rate_limit_exceeded" in str(e).lower():
             try:
-                print(f"[LLM] Rate limit hit. Falling back to llama-3.1-8b-instant.")
+                print(f"[LLM] Rate limit hit. Falling back to openai/gpt-oss-20b.")
                 completion = LLM_CLIENT.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model="openai/gpt-oss-20b",
                     temperature=0,
                     max_tokens=max_tokens,
                     messages=messages,

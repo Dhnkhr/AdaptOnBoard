@@ -12,7 +12,7 @@ class DiagnosticRequest(BaseModel):
 
 LLM_AVAILABLE = False
 LLM_CLIENT = None
-LLM_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 try:
     api_key = os.getenv("GROQ_API_KEY", "")
     if api_key and api_key != "your_groq_api_key_here":

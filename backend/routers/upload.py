@@ -87,7 +87,7 @@ async def upload_resume(file: UploadFile = File(...)):
 async def analyze_url(req: UrlUploadRequest):
     """
     Analyze a GitHub profile URL. Scrapes public repos via the GitHub API,
-    then uses Llama (via Groq) to extract skills from the portfolio text.
+    then uses LLM (via Groq) to extract skills from the portfolio text.
     """
     try:
         # Step 1: Scrape GitHub profile into portfolio text

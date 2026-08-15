@@ -4,7 +4,7 @@ import re
 from groq import Groq
 from typing import Dict, Any, Tuple, Optional, List
 
-LLM_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def _create_chat_completion_with_fallback(**kwargs):
@@ -12,8 +12,8 @@ def _create_chat_completion_with_fallback(**kwargs):
         return client.chat.completions.create(**kwargs)
     except Exception as e:
         if "rate limit" in str(e).lower() or "429" in str(e) or "rate_limit_exceeded" in str(e).lower():
-            print(f"[LLM Chat] Rate limit hit for {kwargs.get('model')}. Falling back to llama-3.1-8b-instant.")
-            kwargs["model"] = "llama-3.1-8b-instant"
+            print(f"[LLM Chat] Rate limit hit for {kwargs.get('model')}. Falling back to openai/gpt-oss-20b.")
+            kwargs["model"] = "openai/gpt-oss-20b"
             return client.chat.completions.create(**kwargs)
         raise e
 
@@ -171,7 +171,7 @@ Requirements:
 
 def process_chat(user_message: str, current_pathway: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
     """
-    Processes a chat message using Groq (Llama). Returns (text_reply, updated_pathway_or_None).
+    Processes a chat message using Groq. Returns (text_reply, updated_pathway_or_None).
     """
     system_prompt = f"""
 You are the 'AdaptOnboard AI Mentor', an expert technical career coach.
