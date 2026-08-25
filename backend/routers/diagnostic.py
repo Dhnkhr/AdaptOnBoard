@@ -16,11 +16,12 @@ class DiagnosticRequest(BaseModel):
     role_title: str
 
 def get_llm_client():
-    api_key = os.getenv("GEMINI_API_KEY", "")
-    if api_key and api_key != "your_gemini_api_key_here":
+    api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GROQ_API_KEY") or "").strip("'\" \t\r\n")
+    if api_key and api_key not in ("your_gemini_api_key_here", "your_groq_api_key_here"):
         try:
             return genai.Client(api_key=api_key)
-        except Exception:
+        except Exception as e:
+            print(f"[LLM Client Error] {e}")
             return None
     return None
 
