@@ -113,11 +113,12 @@ def compute_skill_gap_custom_role(candidate_raw_skills: list, custom_role_title:
             "role_title": custom_role_title,
         }
 
-    llm_result = _generate_skills_with_llm(custom_role_title, candidate_raw_skills, job_description)
+    llm_result, error_msg = _generate_skills_with_llm(custom_role_title, candidate_raw_skills, job_description)
 
     if not llm_result:
+        detail_msg = error_msg or "Could not generate skill requirements for this role. Please try again."
         return {
-            "error": "Could not generate skill requirements for this role. Please try again.",
+            "error": detail_msg,
             "role_id": f"custom:{_slugify(custom_role_title)}",
             "role_title": custom_role_title,
         }
@@ -207,13 +208,13 @@ def _generate_skills_with_llm(
     custom_role_title: str,
     candidate_raw_skills: list,
     job_description: str = None
-) -> dict | None:
+) -> tuple[dict | None, str | None]:
     """
     Use the LLM to generate complete skill requirements for ANY custom role.
-    Returns full skill objects with name, category, resources, prerequisites, and levels.
+    Returns (skill_dict, error_message).
     """
     if get_llm_client() is None:
-        return None
+        return None, "Gemini API key is not configured. Please set GEMINI_API_KEY in .env."
 
     prompt = (
         "You are an expert career advisor and skills analyst. "
@@ -286,16 +287,16 @@ def _generate_skills_with_llm(
                 validated_rec.append(_ensure_skill_structure(skill))
 
         if not validated_core and not validated_rec:
-            return None
+            return None, "LLM returned empty or unparseable skills structure."
 
         return {
             "domain": data.get("domain", "General"),
             "core_skills": validated_core,
             "recommended_skills": validated_rec,
-        }
+        }, None
     except Exception as e:
         print(f"[LLM] Error generating skills for '{custom_role_title}': {e}")
-        return None
+        return None, str(e)
 
 
 def _ensure_skill_structure(skill: dict) -> dict:
