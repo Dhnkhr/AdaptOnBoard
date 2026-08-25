@@ -8,8 +8,8 @@
     <img src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" alt="Next.js" />
     <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19" />
-    <img src="https://img.shields.io/badge/GPT--OSS-120B-orange" alt="GPT-OSS 120B" />
-    <img src="https://img.shields.io/badge/Groq-Fast_Inference-f85149" alt="Groq API" />
+    <img src="https://img.shields.io/badge/Gemini-2.5_Flash-orange" alt="Gemini 2.5 Flash" />
+    <img src="https://img.shields.io/badge/Google_Gemini-API-4285F4?logo=googlegemini" alt="Google Gemini API" />
     <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker" alt="Docker" />
   </p>
 </div>
@@ -39,7 +39,7 @@ The judging criteria require the following features — all are fully implemente
 | Requirement | Status | Implementation |
 |---|---|---|
 | **Intelligent Parsing** | Done | LLM-powered extraction of skills & experience from Resume PDFs and GitHub profiles |
-| **Dynamic Mapping** | Done | Custom-role skill gap identification via GPT-OSS 120B on any job title |
+| **Dynamic Mapping** | Done | Custom-role skill gap identification via Gemini 2.5 Flash on any job title |
 | **Functional Interface** | Done | Full Next.js web app — upload Resume or GitHub URL, view Dashboard + Roadmap |
 | **Reasoning Trace** | Done | Every skill gap recommendation includes an AI-generated explanation *why* |
 
@@ -63,13 +63,13 @@ The judging criteria require the following features — all are fully implemente
 
 ### 3.4 Reasoning Trace (Transparency)
 - Every skill gap recommendation is accompanied by an AI-generated *reasoning explanation*: why this skill is needed, how critical it is, and where it sits in the learning sequence.
-- Powered by the `openai/gpt-oss-120b` model via Groq's ultra-fast inference API.
+- Powered by the Google Gemini API (`gemini-2.5-flash`).
 
 ### 3.5 Resilient AI Chatbot with Rate-Limit Fallback
 - Integrated onboarding assistant chatbot for real-time Q&A about the generated pathway.
-- **Enterprise-grade availability:** Proactively manages Groq API rate limits using an automatic fallback chain:
-  - Primary: `openai/gpt-oss-120b`
-  - Fallback: `openai/gpt-oss-20b`
+- **Enterprise-grade availability:** Proactively manages Gemini API rate limits using an automatic fallback chain:
+  - Primary: `gemini-2.5-flash`
+  - Fallback: `gemini-1.5-flash`
 - Zero downtime during high-load demos.
 
 ### 3.6 Interactive Dashboard & Roadmap
@@ -87,7 +87,7 @@ The judging criteria require the following features — all are fully implemente
 |---|---|
 | **Frontend** | Next.js 15 (App Router), React 19, TypeScript, Vanilla CSS |
 | **Backend** | Python 3.11+, FastAPI, Pydantic, Uvicorn |
-| **AI / LLM Layer** | Groq SDK, openai/gpt-oss-120b (Primary), openai/gpt-oss-20b (Fallback) |
+| **AI / LLM Layer** | Google GenAI SDK, gemini-2.5-flash (Primary), gemini-1.5-flash (Fallback) |
 | **PDF Parsing** | pdfplumber |
 | **GitHub Integration** | GitHub Public REST API (no auth required) |
 | **Core Algorithm** | Custom Priority-Weighted Topological Sort (Kahn's Algorithm) on a DAG |
@@ -110,7 +110,7 @@ User Input
 │                  FastAPI Backend (Port 8000)             │
 │                                                         │
 │  /api/upload-resume  →  PDF text extraction             │
-│                         → LLM resume parsing (Groq)     │
+│                         → LLM resume parsing (Gemini)   │
 │                         → Structured skill vector out   │
 │                                                         │
 │  /api/analyze-url    →  GitHub API scraping             │
@@ -171,7 +171,7 @@ IISc/
 
 - **Python 3.11+**
 - **Node.js 20+**
-- A free **Groq API Key** → [console.groq.com/keys](https://console.groq.com/keys)
+- A free **Google Gemini API Key** → [aistudio.google.com](https://aistudio.google.com/)
 
 ### Step 1 — Clone & Configure Environment
 
@@ -179,15 +179,15 @@ IISc/
 git clone https://github.com/Dhnkhr/AdaptOnBoard.git
 cd AdaptOnBoard
 
-# Copy the env template and add your Groq key
+# Copy the env template and add your Gemini key
 cp .env.example .env
-# Edit .env and set: GROQ_API_KEY=your_key_here
+# Edit .env and set: GEMINI_API_KEY=your_key_here
 ```
 
 **`.env` file contents:**
 ```env
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=openai/gpt-oss-120b
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
 PORT=8000
 ```
 
@@ -290,8 +290,8 @@ As required by the hackathon, all datasets used are publicly available:
 | O*NET Occupational Information Network | [onetonline.org](https://www.onetonline.org/db_releases.html) | Industry-standard occupational taxonomy reference |
 
 **Models used (explicitly cited):**
-- `openai/gpt-oss-120b` — Primary LLM for skill extraction, gap analysis, and reasoning (via Groq)
-- `openai/gpt-oss-20b` — Rate-limit fallback model
+- `gemini-2.5-flash` — Primary LLM for skill extraction, gap analysis, and reasoning (via Google Gemini)
+- `gemini-1.5-flash` — Rate-limit fallback model
 
 ---
 
@@ -300,7 +300,7 @@ As required by the hackathon, all datasets used are publicly available:
 | Criterion | Weight | Our Implementation |
 |---|---|---|
 | **Technical Sophistication** | 20% | Custom DAG + Kahn's topological sort for prerequisite resolution; multi-stage LLM pipeline with strict Pydantic JSON validation; rate-limit fallback chain |
-| **Grounding & Reliability** | 15% | Zero hallucination design: Pydantic-enforced structured outputs, strict JSON parsing with error recovery, Groq inference with deterministic prompts |
+| **Grounding & Reliability** | 15% | Zero hallucination design: Pydantic-enforced structured outputs, strict JSON parsing with error recovery, Gemini inference with deterministic prompts |
 | **Reasoning Trace** | 10% | Every skill recommendation carries an AI-generated `reasoning` field explaining *why* it's needed and *where* in the learning sequence |
 | **Productivity** | 10% | Redundant training elimination via prerequisite graph — learners only see what they don't already know |
 | **User Experience** | 15% | Modern, animated Next.js UI; multi-input modes (PDF + GitHub); chatbot assistant; theme toggle; intuitive pipeline from upload to roadmap |
@@ -319,14 +319,14 @@ As required by the hackathon, all datasets used are publicly available:
 - Value proposition: Reduce onboarding time, eliminate redundancy, maximize ROI
 
 **Slide 2 — Architecture & Workflow**
-- System diagram: Frontend → FastAPI → Groq LLM → DAG engine → Pathway output
+- System diagram: Frontend → FastAPI → Gemini LLM → DAG engine → Pathway output
 - Two input modes: Resume PDF + GitHub profile URL
 - Data flow: Input → Skill Extraction → Gap Analysis → Topological Sort → Roadmap
 
 **Slide 3 — Tech Stack & Models**
 - Frontend: Next.js 15, React 19, TypeScript
 - Backend: FastAPI, Python 3.11, pdfplumber, GitHub Public API
-- LLMs: GPT-OSS 120B (primary), GPT-OSS 20B (fallback) via Groq
+- LLMs: Gemini 2.5 Flash (primary), Gemini 1.5 Flash (fallback) via Google Gemini API
 - Algorithm: Priority-Weighted Topological Sort (Kahn's Algorithm) on a DAG
 
 **Slide 4 — Algorithms, Training & Datasets**
@@ -360,7 +360,7 @@ docker compose -f docker-compose.prod.yml up --build
 | Issue | Solution |
 |---|---|
 | **Port 3000/8000 already in use** | Change ports in `docker-compose.yml`: `"3001:3000"` |
-| **Health check failing** | Increase `start_period` to 60s; ensure `.env` has valid `GROQ_API_KEY` |
+| **Health check failing** | Increase `start_period` to 60s; ensure `.env` has valid `GEMINI_API_KEY` |
 | **Frontend can't reach backend** | Verify `NEXT_PUBLIC_API_URL=http://app:8000` in Dockerfile stage 1 |
 | **Docker daemon not running** | Start Docker Desktop or `systemctl start docker` (Linux) |
 | **Permission denied on start.sh** | Run `chmod +x start.sh` before building |

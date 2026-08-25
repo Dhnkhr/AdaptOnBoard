@@ -1,22 +1,23 @@
 """
 Resume Parser Service
-Extracts text from PDFs and uses LLM (via Groq) or keyword fallback to identify skills.
+Extracts text from PDFs and uses LLM (via Gemini) or keyword fallback to identify skills.
 """
 import os
 import re
 import json
 import pdfplumber
 from io import BytesIO
-from groq import Groq
+from google import genai
+from google.genai import types
 
-# Try to configure LLM via Groq, but gracefully handle missing key
+# Try to configure LLM via Gemini, but gracefully handle missing key
 LLM_AVAILABLE = False
 LLM_CLIENT = None
-LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 try:
-    api_key = os.getenv("GROQ_API_KEY", "")
-    if api_key and api_key != "your_groq_api_key_here":
-        LLM_CLIENT = Groq(api_key=api_key)
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    if api_key and api_key != "your_gemini_api_key_here":
+        LLM_CLIENT = genai.Client(api_key=api_key)
         LLM_AVAILABLE = True
 except Exception:
     pass
@@ -326,7 +327,7 @@ def _extract_resume_data_keyword(text: str) -> dict:
     }
 
 
-# ========== Main functions (try LLM via Groq, fall back to keyword) ==========
+# ========== Main functions (try LLM via Gemini, fall back to keyword) ==========
 
 
 def _extract_json_object(text: str) -> dict | None:
@@ -350,38 +351,36 @@ def _extract_json_object(text: str) -> dict | None:
     return None
 
 
-def _llama_json(prompt: str, max_tokens: int = 2048) -> dict | None:
+def _gemini_json(prompt: str, max_tokens: int = 2048) -> dict | None:
     if not LLM_AVAILABLE or LLM_CLIENT is None:
         return None
 
-    messages = [
-        {
-            "role": "system",
-            "content": "Return only strict JSON. No markdown. No extra text.",
-        },
-        {"role": "user", "content": prompt},
-    ]
-
     try:
-        completion = LLM_CLIENT.chat.completions.create(
+        response = LLM_CLIENT.models.generate_content(
             model=LLM_MODEL,
-            temperature=0,
-            max_tokens=max_tokens,
-            messages=messages,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.0,
+                max_output_tokens=max_tokens,
+                response_mime_type="application/json",
+            ),
         )
-        content = completion.choices[0].message.content or ""
+        content = response.text or ""
         return _extract_json_object(content)
     except Exception as e:
-        if "rate limit" in str(e).lower() or "429" in str(e) or "rate_limit_exceeded" in str(e).lower():
+        if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
             try:
-                print(f"[LLM] Rate limit hit. Falling back to openai/gpt-oss-20b.")
-                completion = LLM_CLIENT.chat.completions.create(
-                    model="openai/gpt-oss-20b",
-                    temperature=0,
-                    max_tokens=max_tokens,
-                    messages=messages,
+                print(f"[LLM] Rate limit hit. Falling back to gemini-1.5-flash.")
+                response = LLM_CLIENT.models.generate_content(
+                    model="gemini-1.5-flash",
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.0,
+                        max_output_tokens=max_tokens,
+                        response_mime_type="application/json",
+                    ),
                 )
-                content = completion.choices[0].message.content or ""
+                content = response.text or ""
                 return _extract_json_object(content)
             except Exception:
                 pass
@@ -434,7 +433,7 @@ Resume text:
 
 
 async def extract_resume_data(resume_text: str) -> dict:
-    """Extract structured data from resume text. Uses Llama if available, else keyword fallback."""
+    """Extract structured data from resume text. Uses Gemini if available, else keyword fallback."""
     # Strict heuristic check before doing anything (saves API calls & prevents hallucinations)
     if not _is_likely_resume(resume_text):
         return {
@@ -452,7 +451,7 @@ async def extract_resume_data(resume_text: str) -> dict:
 
     if LLM_AVAILABLE:
         prompt = EXTRACTION_PROMPT.replace("{resume_text}", resume_text)
-        data = _llama_json(prompt, max_tokens=2048)
+        data = _gemini_json(prompt, max_tokens=2048)
         if data:
             if not data.get("is_resume", True):
                 data["skills"] = []
@@ -473,7 +472,7 @@ async def extract_portfolio_data(text: str) -> dict:
     Bypasses the strict `_is_likely_resume` checks specifically used for PDF uploads.
     Used exclusively for generating skills from scraped URLs/Portfolios (e.g. GitHub repos).
     """
-    # Try Llama first
+    # Try Gemini first
     if LLM_AVAILABLE:
         prompt = f"""
 You are an expert technical recruiter analyzing a candidate's portfolio or GitHub profile.
@@ -489,7 +488,7 @@ WARNING: Output ONLY a valid JSON object matching this schema. Do not include ma
     "domain": "Software Engineering"
 }}
 """
-        data = _llama_json(prompt, max_tokens=1024)
+        data = _gemini_json(prompt, max_tokens=1024)
         if data and data.get("skills"):
             return data
     

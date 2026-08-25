@@ -2,7 +2,8 @@ import os
 import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from groq import Groq
+from google import genai
+from google.genai import types
 
 router = APIRouter()
 
@@ -12,11 +13,11 @@ class DiagnosticRequest(BaseModel):
 
 LLM_AVAILABLE = False
 LLM_CLIENT = None
-LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 try:
-    api_key = os.getenv("GROQ_API_KEY", "")
-    if api_key and api_key != "your_groq_api_key_here":
-        LLM_CLIENT = Groq(api_key=api_key)
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    if api_key and api_key != "your_gemini_api_key_here":
+        LLM_CLIENT = genai.Client(api_key=api_key)
         LLM_AVAILABLE = True
 except Exception:
     pass
@@ -44,16 +45,16 @@ async def generate_diagnostic(req: DiagnosticRequest):
     )
 
     try:
-        completion = LLM_CLIENT.chat.completions.create(
+        response = LLM_CLIENT.models.generate_content(
             model=LLM_MODEL,
-            temperature=0.2,
-            max_tokens=1000,
-            messages=[
-                {"role": "system", "content": "Return only strict JSON. No markdown fences. No extra text."},
-                {"role": "user", "content": prompt},
-            ],
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                max_output_tokens=1000,
+                response_mime_type="application/json",
+            ),
         )
-        content = (completion.choices[0].message.content or "").strip()
+        content = (response.text or "").strip()
         
         # Cleanup markdown fences if LLM hallucinates them
         if content.startswith("```"):

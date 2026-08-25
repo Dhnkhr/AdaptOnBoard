@@ -87,13 +87,13 @@ async def upload_resume(file: UploadFile = File(...)):
 async def analyze_url(req: UrlUploadRequest):
     """
     Analyze a GitHub profile URL. Scrapes public repos via the GitHub API,
-    then uses LLM (via Groq) to extract skills from the portfolio text.
+    then uses LLM (via Gemini) to extract skills from the portfolio text.
     """
     try:
         # Step 1: Scrape GitHub profile into portfolio text
         portfolio_text = parse_github_profile(req.url)
 
-        # Step 2: Use Groq-powered LLM to extract skills from portfolio
+        # Step 2: Use Gemini-powered LLM to extract skills from portfolio
         resume_data = await extract_portfolio_data(portfolio_text)
 
         raw_skills = resume_data.get("skills", [])

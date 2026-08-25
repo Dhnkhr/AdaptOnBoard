@@ -1,20 +1,41 @@
 import os
 import json
 import re
-from groq import Groq
+from google import genai
+from google.genai import types
 from typing import Dict, Any, Tuple, Optional, List
 
-LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+api_key = os.environ.get("GEMINI_API_KEY", "")
+client = genai.Client(api_key=api_key) if api_key and api_key != "your_gemini_api_key_here" else None
 
-def _create_chat_completion_with_fallback(**kwargs):
+def _generate_content_with_fallback(prompt: str, system_prompt: str = None, temperature: float = 0.0, max_tokens: int = 4096, json_output: bool = False):
+    if client is None:
+        raise ValueError("Gemini API key is not configured.")
+
+    config = types.GenerateContentConfig(
+        temperature=temperature,
+        max_output_tokens=max_tokens,
+    )
+    if system_prompt:
+        config.system_instruction = system_prompt
+    if json_output:
+        config.response_mime_type = "application/json"
+
     try:
-        return client.chat.completions.create(**kwargs)
+        return client.models.generate_content(
+            model=LLM_MODEL,
+            contents=prompt,
+            config=config,
+        )
     except Exception as e:
-        if "rate limit" in str(e).lower() or "429" in str(e) or "rate_limit_exceeded" in str(e).lower():
-            print(f"[LLM Chat] Rate limit hit for {kwargs.get('model')}. Falling back to openai/gpt-oss-20b.")
-            kwargs["model"] = "openai/gpt-oss-20b"
-            return client.chat.completions.create(**kwargs)
+        if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
+            print(f"[LLM Chat] Rate limit hit for {LLM_MODEL}. Falling back to gemini-1.5-flash.")
+            return client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt,
+                config=config,
+            )
         raise e
 
 def _is_pathway_change_request(user_message: str) -> bool:
@@ -158,20 +179,20 @@ Requirements:
 - Output strictly valid JSON object only.
 """
 
-    repair_completion = _create_chat_completion_with_fallback(
-        messages=[{"role": "user", "content": repair_prompt}],
-        model=LLM_MODEL,
-        temperature=0,
+    repair_completion = _generate_content_with_fallback(
+        prompt=repair_prompt,
+        temperature=0.0,
         max_tokens=4096,
+        json_output=True,
     )
 
-    repaired_text = repair_completion.choices[0].message.content or ""
+    repaired_text = repair_completion.text or ""
     json_candidate = _extract_json_candidate(repaired_text) or repaired_text.strip()
     return json.loads(json_candidate)
 
 def process_chat(user_message: str, current_pathway: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
     """
-    Processes a chat message using Groq. Returns (text_reply, updated_pathway_or_None).
+    Processes a chat message using Gemini. Returns (text_reply, updated_pathway_or_None).
     """
     system_prompt = f"""
 You are the 'AdaptOnboard AI Mentor', an expert technical career coach.
@@ -195,17 +216,14 @@ Do NOT output the raw JSON block unless the user explicitly requested a modifica
 """
     
     try:
-        chat_completion = _create_chat_completion_with_fallback(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-            model=LLM_MODEL,
+        chat_completion = _generate_content_with_fallback(
+            prompt=user_message,
+            system_prompt=system_prompt,
             temperature=0.7,
             max_tokens=4096,
         )
         
-        text = chat_completion.choices[0].message.content or ""
+        text = chat_completion.text or ""
         updated_pathway = None
 
         json_candidate = _extract_json_candidate(text)

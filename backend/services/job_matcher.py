@@ -5,27 +5,42 @@ Matches resume skills against job role requirements and computes skill gaps usin
 import json
 import os
 import re
-from groq import Groq
+from google import genai
+from google.genai import types
 
 LLM_AVAILABLE = False
 LLM_CLIENT = None
-LLM_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 try:
-    api_key = os.getenv("GROQ_API_KEY", "")
-    if api_key and api_key != "your_groq_api_key_here":
-        LLM_CLIENT = Groq(api_key=api_key)
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    if api_key and api_key != "your_gemini_api_key_here":
+        LLM_CLIENT = genai.Client(api_key=api_key)
         LLM_AVAILABLE = True
 except Exception:
     pass
 
-def _create_chat_completion_with_fallback(**kwargs):
+def _generate_content_with_fallback(prompt: str, max_tokens: int = 3000, json_output: bool = False):
+    config = types.GenerateContentConfig(
+        temperature=0.0,
+        max_output_tokens=max_tokens,
+    )
+    if json_output:
+        config.response_mime_type = "application/json"
+
     try:
-        return LLM_CLIENT.chat.completions.create(**kwargs)
+        return LLM_CLIENT.models.generate_content(
+            model=LLM_MODEL,
+            contents=prompt,
+            config=config,
+        )
     except Exception as e:
-        if "rate limit" in str(e).lower() or "429" in str(e) or "rate_limit_exceeded" in str(e).lower():
-            print(f"[LLM] Rate limit hit for {kwargs.get('model')}. Falling back to openai/gpt-oss-20b.")
-            kwargs["model"] = "openai/gpt-oss-20b"
-            return LLM_CLIENT.chat.completions.create(**kwargs)
+        if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
+            print(f"[LLM] Rate limit hit for {LLM_MODEL}. Falling back to gemini-1.5-flash.")
+            return LLM_CLIENT.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt,
+                config=config,
+            )
         raise e
 
 def _is_valid_job_title(title: str) -> bool:
@@ -49,13 +64,8 @@ def _is_valid_job_title(title: str) -> bool:
         "Reply ONLY with 'YES' or 'NO'."
     )
     try:
-        completion = _create_chat_completion_with_fallback(
-            model=LLM_MODEL,
-            temperature=0,
-            max_tokens=10,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = (completion.choices[0].message.content or "").strip().upper()
+        response = _generate_content_with_fallback(prompt, max_tokens=10)
+        content = (response.text or "").strip().upper()
         return "YES" in content
     except Exception:
         return True  # Fail open if API errors
@@ -226,16 +236,8 @@ def _generate_skills_with_llm(
     )
 
     try:
-        completion = _create_chat_completion_with_fallback(
-            model=LLM_MODEL,
-            temperature=0,
-            max_tokens=3000,
-            messages=[
-                {"role": "system", "content": "Return only strict JSON. No markdown fences. No extra text."},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        content = (completion.choices[0].message.content or "").strip()
+        response = _generate_content_with_fallback(prompt, max_tokens=3000, json_output=True)
+        content = (response.text or "").strip()
 
         # Clean markdown fences if present
         if content.startswith("```"):
