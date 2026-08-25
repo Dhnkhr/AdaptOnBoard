@@ -353,42 +353,40 @@ def _extract_json_object(text: str) -> dict | None:
     return None
 
 
+import time
+
+FALLBACK_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-pro"]
+
 def _gemini_json(prompt: str, max_tokens: int = 2048) -> dict | None:
     client = get_llm_client()
     if client is None:
         return None
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
-    try:
-        response = client.models.generate_content(
-            model=model_name,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.0,
-                max_output_tokens=max_tokens,
-                response_mime_type="application/json",
-            ),
-        )
-        content = response.text or ""
-        return _extract_json_object(content)
-    except Exception as e:
-        if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
-            try:
-                print(f"[LLM] Rate limit hit. Falling back to gemini-flash-latest.")
-                response = client.models.generate_content(
-                    model="gemini-flash-latest",
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        temperature=0.0,
-                        max_output_tokens=max_tokens,
-                        response_mime_type="application/json",
-                    ),
-                )
-                content = response.text or ""
-                return _extract_json_object(content)
-            except Exception:
-                pass
-        return None
+    env_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    models_to_try = [env_model] + [m for m in FALLBACK_MODELS if m != env_model]
+
+    config = types.GenerateContentConfig(
+        temperature=0.0,
+        max_output_tokens=max_tokens,
+        response_mime_type="application/json",
+    )
+
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config,
+            )
+            content = response.text or ""
+            parsed = _extract_json_object(content)
+            if parsed:
+                return parsed
+        except Exception as e:
+            print(f"[LLM Resume] Model '{model_name}' hit error: {e}. Trying fallback...")
+            time.sleep(0.3)
+
+    return None
 
 EXTRACTION_PROMPT = """You are an expert HR analyst. Analyze the following resume text and extract structured information.
 

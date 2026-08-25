@@ -34,12 +34,18 @@ def _extract_response_text(response) -> str:
         pass
     return ""
 
+import time
+
+FALLBACK_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-pro"]
+
 def _generate_content_with_fallback(prompt: str, max_tokens: int = 3000, json_output: bool = False):
     client = get_llm_client()
     if client is None:
         raise ValueError("GEMINI_API_KEY is not set or contains placeholder value.")
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    env_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    models_to_try = [env_model] + [m for m in FALLBACK_MODELS if m != env_model]
+
     config = types.GenerateContentConfig(
         temperature=0.0,
         max_output_tokens=max_tokens,
@@ -47,21 +53,20 @@ def _generate_content_with_fallback(prompt: str, max_tokens: int = 3000, json_ou
     if json_output:
         config.response_mime_type = "application/json"
 
-    try:
-        return client.models.generate_content(
-            model=model_name,
-            contents=prompt,
-            config=config,
-        )
-    except Exception as e:
-        if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
-            print(f"[LLM] Rate limit hit for {model_name}. Falling back to gemini-flash-latest.")
+    last_err = None
+    for model_name in models_to_try:
+        try:
             return client.models.generate_content(
-                model="gemini-flash-latest",
+                model=model_name,
                 contents=prompt,
                 config=config,
             )
-        raise e
+        except Exception as e:
+            last_err = e
+            print(f"[LLM] Model '{model_name}' hit error: {e}. Trying next fallback...")
+            time.sleep(0.3)
+
+    raise last_err
 
 def _is_valid_job_title(title: str) -> bool:
     """

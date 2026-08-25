@@ -19,12 +19,18 @@ def get_llm_client():
             return None
     return None
 
+import time
+
+FALLBACK_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-2.5-pro"]
+
 def _generate_content_with_fallback(prompt: str, system_prompt: str = None, temperature: float = 0.0, max_tokens: int = 4096, json_output: bool = False):
     client = get_llm_client()
     if client is None:
         raise ValueError("Gemini API key is not configured.")
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    env_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    models_to_try = [env_model] + [m for m in FALLBACK_MODELS if m != env_model]
+
     config = types.GenerateContentConfig(
         temperature=temperature,
         max_output_tokens=max_tokens,
@@ -34,21 +40,20 @@ def _generate_content_with_fallback(prompt: str, system_prompt: str = None, temp
     if json_output:
         config.response_mime_type = "application/json"
 
-    try:
-        return client.models.generate_content(
-            model=model_name,
-            contents=prompt,
-            config=config,
-        )
-    except Exception as e:
-        if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
-            print(f"[LLM Chat] Rate limit hit for {model_name}. Falling back to gemini-flash-latest.")
+    last_err = None
+    for model_name in models_to_try:
+        try:
             return client.models.generate_content(
-                model="gemini-flash-latest",
+                model=model_name,
                 contents=prompt,
                 config=config,
             )
-        raise e
+        except Exception as e:
+            last_err = e
+            print(f"[LLM Chat] Model '{model_name}' hit error: {e}. Trying next fallback...")
+            time.sleep(0.3)
+
+    raise last_err
 
 def _is_pathway_change_request(user_message: str) -> bool:
     """Detect whether the user asked to modify the roadmap/pathway."""
