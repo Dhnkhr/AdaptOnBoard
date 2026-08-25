@@ -5,27 +5,30 @@ from pydantic import BaseModel
 from google import genai
 from google.genai import types
 
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
 router = APIRouter()
 
 class DiagnosticRequest(BaseModel):
     skill_name: str
     role_title: str
 
-LLM_AVAILABLE = False
-LLM_CLIENT = None
-LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-try:
+def get_llm_client():
     api_key = os.getenv("GEMINI_API_KEY", "")
     if api_key and api_key != "your_gemini_api_key_here":
-        LLM_CLIENT = genai.Client(api_key=api_key)
-        LLM_AVAILABLE = True
-except Exception:
-    pass
+        try:
+            return genai.Client(api_key=api_key)
+        except Exception:
+            return None
+    return None
 
 @router.post("/diagnostic/generate")
 async def generate_diagnostic(req: DiagnosticRequest):
-    if not LLM_AVAILABLE or LLM_CLIENT is None:
-        raise HTTPException(status_code=503, detail="LLM API is not available offline.")
+    client = get_llm_client()
+    if client is None:
+        raise HTTPException(status_code=503, detail="Gemini API is not configured. Set GEMINI_API_KEY in .env.")
 
     prompt = (
         f"You are an expert technical interviewer evaluating a candidate for a '{req.role_title}' role. "
@@ -44,9 +47,10 @@ async def generate_diagnostic(req: DiagnosticRequest):
         "}"
     )
 
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     try:
-        response = LLM_CLIENT.models.generate_content(
-            model=LLM_MODEL,
+        response = client.models.generate_content(
+            model=model_name,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.2,

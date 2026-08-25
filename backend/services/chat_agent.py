@@ -5,14 +5,25 @@ from google import genai
 from google.genai import types
 from typing import Dict, Any, Tuple, Optional, List
 
-LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-api_key = os.environ.get("GEMINI_API_KEY", "")
-client = genai.Client(api_key=api_key) if api_key and api_key != "your_gemini_api_key_here" else None
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+def get_llm_client():
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    if api_key and api_key != "your_gemini_api_key_here":
+        try:
+            return genai.Client(api_key=api_key)
+        except Exception:
+            return None
+    return None
 
 def _generate_content_with_fallback(prompt: str, system_prompt: str = None, temperature: float = 0.0, max_tokens: int = 4096, json_output: bool = False):
+    client = get_llm_client()
     if client is None:
         raise ValueError("Gemini API key is not configured.")
 
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     config = types.GenerateContentConfig(
         temperature=temperature,
         max_output_tokens=max_tokens,
@@ -24,15 +35,15 @@ def _generate_content_with_fallback(prompt: str, system_prompt: str = None, temp
 
     try:
         return client.models.generate_content(
-            model=LLM_MODEL,
+            model=model_name,
             contents=prompt,
             config=config,
         )
     except Exception as e:
         if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
-            print(f"[LLM Chat] Rate limit hit for {LLM_MODEL}. Falling back to gemini-1.5-flash.")
+            print(f"[LLM Chat] Rate limit hit for {model_name}. Falling back to gemini-flash-latest.")
             return client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-flash-latest",
                 contents=prompt,
                 config=config,
             )

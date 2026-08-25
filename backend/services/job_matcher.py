@@ -1,25 +1,44 @@
-"""
-Job Matcher Service
-Matches resume skills against job role requirements and computes skill gaps using the LLM.
-"""
-import json
 import os
+import json
 import re
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
 
-LLM_AVAILABLE = False
-LLM_CLIENT = None
-LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-try:
+load_dotenv(override=True)
+
+def get_llm_client():
     api_key = os.getenv("GEMINI_API_KEY", "")
     if api_key and api_key != "your_gemini_api_key_here":
-        LLM_CLIENT = genai.Client(api_key=api_key)
-        LLM_AVAILABLE = True
-except Exception:
-    pass
+        try:
+            return genai.Client(api_key=api_key)
+        except Exception:
+            return None
+    return None
+
+def _extract_response_text(response) -> str:
+    if response is None:
+        return ""
+    try:
+        if hasattr(response, "text") and response.text:
+            return response.text
+    except Exception:
+        pass
+    try:
+        if hasattr(response, "candidates") and response.candidates:
+            cand = response.candidates[0]
+            if cand and cand.content and cand.content.parts:
+                return "".join(p.text for p in cand.content.parts if hasattr(p, "text") and p.text)
+    except Exception:
+        pass
+    return ""
 
 def _generate_content_with_fallback(prompt: str, max_tokens: int = 3000, json_output: bool = False):
+    client = get_llm_client()
+    if client is None:
+        raise ValueError("GEMINI_API_KEY is not set or contains placeholder value.")
+
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     config = types.GenerateContentConfig(
         temperature=0.0,
         max_output_tokens=max_tokens,
@@ -28,16 +47,16 @@ def _generate_content_with_fallback(prompt: str, max_tokens: int = 3000, json_ou
         config.response_mime_type = "application/json"
 
     try:
-        return LLM_CLIENT.models.generate_content(
-            model=LLM_MODEL,
+        return client.models.generate_content(
+            model=model_name,
             contents=prompt,
             config=config,
         )
     except Exception as e:
         if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
-            print(f"[LLM] Rate limit hit for {LLM_MODEL}. Falling back to gemini-1.5-flash.")
-            return LLM_CLIENT.models.generate_content(
-                model="gemini-1.5-flash",
+            print(f"[LLM] Rate limit hit for {model_name}. Falling back to gemini-flash-latest.")
+            return client.models.generate_content(
+                model="gemini-flash-latest",
                 contents=prompt,
                 config=config,
             )
@@ -48,7 +67,7 @@ def _is_valid_job_title(title: str) -> bool:
     Fast LLM check to see if the input is a reasonable job title or domain,
     preventing garbage input from wasting tokens on the main generation phase.
     """
-    if not LLM_AVAILABLE or LLM_CLIENT is None:
+    if get_llm_client() is None:
         return True  # Bypass if no LLM
 
     # Fast heuristics
@@ -64,9 +83,11 @@ def _is_valid_job_title(title: str) -> bool:
         "Reply ONLY with 'YES' or 'NO'."
     )
     try:
-        response = _generate_content_with_fallback(prompt, max_tokens=10)
-        content = (response.text or "").strip().upper()
-        return "YES" in content
+        response = _generate_content_with_fallback(prompt, max_tokens=15)
+        text = _extract_response_text(response).strip().upper()
+        if not text:
+            return True  # Fail open if response text empty
+        return "YES" in text or "TRUE" in text
     except Exception:
         return True  # Fail open if API errors
 
@@ -77,9 +98,9 @@ def compute_skill_gap_custom_role(candidate_raw_skills: list, custom_role_title:
     The LLM generates complete skill objects (name, category, resources, prerequisites)
     and we match against the candidate's raw skills.
     """
-    if not LLM_AVAILABLE or LLM_CLIENT is None:
+    if get_llm_client() is None:
         return {
-            "error": "LLM API is not available. Cannot analyze custom roles without the API.",
+            "error": "Gemini API key is not configured. Please set a valid GEMINI_API_KEY in your .env file.",
             "role_id": f"custom:{_slugify(custom_role_title)}",
             "role_title": custom_role_title,
         }
@@ -190,7 +211,7 @@ def _generate_skills_with_llm(
     Use the LLM to generate complete skill requirements for ANY custom role.
     Returns full skill objects with name, category, resources, prerequisites, and levels.
     """
-    if not LLM_AVAILABLE or LLM_CLIENT is None:
+    if get_llm_client() is None:
         return None
 
     prompt = (
@@ -237,7 +258,7 @@ def _generate_skills_with_llm(
 
     try:
         response = _generate_content_with_fallback(prompt, max_tokens=3000, json_output=True)
-        content = (response.text or "").strip()
+        content = _extract_response_text(response).strip()
 
         # Clean markdown fences if present
         if content.startswith("```"):

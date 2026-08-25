@@ -10,17 +10,18 @@ from io import BytesIO
 from google import genai
 from google.genai import types
 
-# Try to configure LLM via Gemini, but gracefully handle missing key
-LLM_AVAILABLE = False
-LLM_CLIENT = None
-LLM_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-try:
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+def get_llm_client():
     api_key = os.getenv("GEMINI_API_KEY", "")
     if api_key and api_key != "your_gemini_api_key_here":
-        LLM_CLIENT = genai.Client(api_key=api_key)
-        LLM_AVAILABLE = True
-except Exception:
-    pass
+        try:
+            return genai.Client(api_key=api_key)
+        except Exception:
+            return None
+    return None
 
 # ========== Keyword-based skill extraction (offline fallback) ==========
 
@@ -352,12 +353,14 @@ def _extract_json_object(text: str) -> dict | None:
 
 
 def _gemini_json(prompt: str, max_tokens: int = 2048) -> dict | None:
-    if not LLM_AVAILABLE or LLM_CLIENT is None:
+    client = get_llm_client()
+    if client is None:
         return None
 
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     try:
-        response = LLM_CLIENT.models.generate_content(
-            model=LLM_MODEL,
+        response = client.models.generate_content(
+            model=model_name,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.0,
@@ -370,9 +373,9 @@ def _gemini_json(prompt: str, max_tokens: int = 2048) -> dict | None:
     except Exception as e:
         if "rate limit" in str(e).lower() or "429" in str(e) or "resource_exhausted" in str(e).lower():
             try:
-                print(f"[LLM] Rate limit hit. Falling back to gemini-1.5-flash.")
-                response = LLM_CLIENT.models.generate_content(
-                    model="gemini-1.5-flash",
+                print(f"[LLM] Rate limit hit. Falling back to gemini-flash-latest.")
+                response = client.models.generate_content(
+                    model="gemini-flash-latest",
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         temperature=0.0,
@@ -449,7 +452,7 @@ async def extract_resume_data(resume_text: str) -> dict:
             "is_resume": False,
         }
 
-    if LLM_AVAILABLE:
+    if get_llm_client() is not None:
         prompt = EXTRACTION_PROMPT.replace("{resume_text}", resume_text)
         data = _gemini_json(prompt, max_tokens=2048)
         if data:
@@ -473,7 +476,7 @@ async def extract_portfolio_data(text: str) -> dict:
     Used exclusively for generating skills from scraped URLs/Portfolios (e.g. GitHub repos).
     """
     # Try Gemini first
-    if LLM_AVAILABLE:
+    if get_llm_client() is not None:
         prompt = f"""
 You are an expert technical recruiter analyzing a candidate's portfolio or GitHub profile.
 Identify the applicant's core skills based on their projects, repository descriptions, and primary languages.
