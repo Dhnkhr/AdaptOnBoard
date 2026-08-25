@@ -65,22 +65,22 @@ def _generate_content_with_fallback(prompt: str, max_tokens: int = 3000, json_ou
 
 def _is_valid_job_title(title: str) -> bool:
     """
-    Fast LLM check to see if the input is a reasonable job title or domain,
-    preventing garbage input from wasting tokens on the main generation phase.
+    Fast heuristic check to see if the input is a plausible job title,
+    preventing empty or garbage symbol input from wasting tokens.
     """
     if get_llm_client() is None:
         return True  # Bypass if no LLM
 
     # Fast heuristics
-    title = title.strip()
+    title = (title or "").strip()
     if len(title) < 2 or len(title) > 100:
         return False
-    # If the title is just special characters/numbers
-    if all(char in "0123456789!@#$%^&*()_+={}[]|\\:;\"'<>,.?/~ \t\n" for char in title):
+    # If the title contains no alphabetic characters (e.g. pure numbers/symbols)
+    if not any(c.isalpha() for c in title):
         return False
 
     prompt = (
-        f"Is '{title}' a valid, recognizable, or plausible job title, profession, or career domain? "
+        f"Is '{title}' a valid or plausible job title, profession, or career domain? "
         "Reply ONLY with 'YES' or 'NO'."
     )
     try:
@@ -88,7 +88,9 @@ def _is_valid_job_title(title: str) -> bool:
         text = _extract_response_text(response).strip().upper()
         if not text:
             return True  # Fail open if response text empty
-        return "YES" in text or "TRUE" in text
+        if "NO" in text and "YES" not in text:
+            return False
+        return True
     except Exception:
         return True  # Fail open if API errors
 
